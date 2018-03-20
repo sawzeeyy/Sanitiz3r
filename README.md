@@ -67,7 +67,7 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 
 # License
 
-Sanitiz3r is licensed under the GNU GPL license. take a look at the [LICENSE](/license) for more information.
+Sanitiz3r is licensed under the GNU GPL license. take a look at the [LICENSE](/LICENSE) for more information.
 
 # Contribution
 
