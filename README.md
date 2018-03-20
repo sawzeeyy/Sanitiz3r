@@ -30,6 +30,8 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 
 **Python 3:** `$ pip3 install -r requirements.txt`
 
+**For Coloring on Windows:** `pip install win_unicode_console colorama`
+
 # Usage
 
 | Short Form        | Long Form           | Description  |
