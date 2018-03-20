@@ -133,7 +133,7 @@ def get_url_status(url, timeout, arguments):
     https_url, https_status, https_title = full_https_status
     url_status = min(http_status, https_status)
     status = 'Not Reachable' if url_status == 1909 else url_status
-    print('\t{}[+] Status: {}{}'.format(Y, status, C))
+    if (arguments.verbose): print('\t{}[+] Status: {}{}'.format(Y, status, C))
     if url_status == http_status:
         if (arguments.verbose): print('\t{}[+] Title: {}{}'.format(Y, http_title, C))
         return [url_status, http_url, http_title]
@@ -308,7 +308,7 @@ def sanitiz3r():
         save_html_file(html, filename)
     print('{}[+] HTML Report Successfully Generated{}'.format(Y, C))
     print('{}[+] File saved as {}{}/{}.html{}'.format(Y, R, os.path.dirname(os.path.abspath(__file__)), filename, C))
-    print('{}[+] Sanitiz3r Operation Completed!{}'.format(Y, C))
+    print('{}[+] Sanitiz3r Operation Completed!{}'.format(Y, W))
     try:
         webbrowser.open_new_tab('file:///' + os.path.dirname(os.path.abspath(__file__)) + '/' + filename + '.html')
     except:
