@@ -155,7 +155,7 @@ def get_http_status(url, time_out = 10):
             resp = http.client.HTTPConnection(url, timeout = time_out)
         resp.request('GET', '/')
         response = resp.getresponse()
-        title = extract_title(response.read().decode("utf-8"))
+        title = extract_title(response.read().encode("utf-8"))
         return ['http://' + url, response.status, title]
     except:
         return ['http://' + url, 1909, 'Unidentified']
@@ -163,7 +163,7 @@ def get_http_status(url, time_out = 10):
 def get_https_status(url, time_out = 10):
     try:
         response = requests.get('https://'+url, timeout = time_out)
-        title = extract_title(response.text)
+        title = extract_title(response.text.encode("utf-8"))
         return ['https://' + url, response.status_code, title]
     except:
         return ['https://' + url, 1909, 'Unidentified']
