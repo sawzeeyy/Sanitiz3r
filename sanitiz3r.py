@@ -58,7 +58,7 @@ def parse_args():
     parser._optionals.title = "OPTIONS"
     parser.add_argument('-v', '--verbose', help='Optionally log all information about the current process', required=False, action = 'store_true')
     parser.add_argument('-a', '--active', help='Optionally choose to take Sanitiz3r online to detemine the validity of subdomains', required=False, action = 'store_true')
-    parser.add_argument('-d', '--domain', help='Specify a Domain name or a file cotaining a list of domain names to return the corresponding matching subdomains', required=True)
+    parser.add_argument('-d', '--domain', help='Specify a domain, a comma separated list or a file containing a list of domains to return the corresponding matching subdomains', required=True)
     parser.add_argument('-i', '--input', help='Specify an input file or a comma-separated list of the files to sanitize', required=True)
     parser.add_argument('-o', '--output', help='Optionally specify the filename to save the report', required=False)
     return parser.parse_args()
@@ -288,10 +288,17 @@ def sanitiz3r():
     header()
     args = parse_args()
     domain = args.domain.split(',')
+    filename = domain[0].split('.')[0] + '_sanitiz3r' if type(args.output) != type('F007573P') else args.output.split('.')[0] + '_sanitiz3r'
+    if len(domain) == 1 and domain[0].split('.')[1] == 'txt':
+        try:
+            domain = open(domain[0]).readlines()
+        except:
+            print('{}Cannot find : {}{}'.format(R, domain[0], C))
+            sys.exit()
+    domain = [i.strip() for i in domain]
     file = args.input.split(',')
     urls = get_urls(domain,file)
     mode = 'active' if args.active else 'passive'
-    filename = domain[0].split('.')[0] + '_sanitiz3r' if type(args.output) != type('F007573P') else args.output.split('.')[0] + '_sanitiz3r'
 
     if urls == 'empty':
         sys.exit()
