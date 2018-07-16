@@ -45,7 +45,10 @@ def header():
         '''%(R, B, R, C, W))
 
 def parse_error(errormsg):
-    print('{}Usage: {} [Options] use -h for help'.format(Y, sys.argv[0]))
+    if len(sys.argv[0]) < 7:
+        print('{}Usage: {} [Options] use -h for help'.format(Y, sys.argv[0]))
+    else:
+        print('{}Usage: {} [Options] use -h for help'.format(Y, sys.argv[0].split('/')[-1]))
     print('{}Error: {}{}'.format(R, errormsg, W))
     sys.exit()
 
@@ -205,7 +208,6 @@ def generate_html_code(*args):
                     """.format(url[0], url[0], url[0].split('/')[-1], status, url[1])
                 div_code += part_div_code
 
-
     style = """\
 h1 {
         font-family: sans-serif;
@@ -273,13 +275,11 @@ h1 {
 </html>
     """.format(style, domains, domains, domain_length, div_code)
     html_code.append(part_code)
-
-
     return html_code, text_format
 
 def save_html_file(code, filename):
-    fh = open(os.path.dirname(os.path.abspath(__file__))+'/'+filename+'.html', 'w')
-    txt = open(os.path.dirname(os.path.abspath(__file__))+'/'+filename+'.txt', 'w')
+    fh = open(filename + '.html', 'w')
+    txt = open(filename + '.txt', 'w')
     for st in code[0]: fh.write(st)
     for text in code[1]: txt.write(text+'\n')
     fh.close()
@@ -289,15 +289,18 @@ def sanitiz3r():
     args = parse_args()
     domain = args.domain.split(',')
     filename = domain[0].split('.')[0] + '_sanitiz3r' if type(args.output) != type('F007573P') else args.output.split('.')[0] + '_sanitiz3r'
+
     if len(domain) == 1 and domain[0].split('.')[1] == 'txt':
         try:
             domain = open(domain[0]).readlines()
         except:
             print('{}Cannot find : {}{}'.format(R, domain[0], C))
             sys.exit()
+
     domain = [i.strip() for i in domain]
     file = args.input.split(',')
     urls = get_urls(domain,file)
+    filename = os.path.dirname(os.path.abspath(file[0])) + '/' + filename
     mode = 'active' if args.active else 'passive'
 
     if urls == 'empty':
@@ -314,10 +317,10 @@ def sanitiz3r():
         html = generate_html_code(mode, domain, len(urls), status)
         save_html_file(html, filename)
     print('{}[+] HTML Report Successfully Generated{}'.format(Y, C))
-    print('{}[+] File saved as {}{}/{}.html{}'.format(Y, R, os.path.dirname(os.path.abspath(__file__)), filename, C))
+    print('{}[+] File saved as {}{}.html{}'.format(Y, R, filename, C))
     print('{}[+] Sanitiz3r Operation Completed!{}'.format(Y, W))
     try:
-        webbrowser.open_new_tab('file:///' + os.path.dirname(os.path.abspath(__file__)) + '/' + filename + '.html')
+        webbrowser.open_new_tab('file:///' + filename + '.html')
     except:
         webbrowser.open_new_tab(filename + '.html')
 if __name__ == '__main__': sanitiz3r()
