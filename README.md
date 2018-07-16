@@ -22,7 +22,18 @@ $ git clone https://github.com/sawzeeyy/Sanitiz3r.git
 $ cd Sanitiz3r
 $ pip install -r requirements.txt
 ```
-
+**Additional for Linux users**
+```
+$ ln -s /FULL_PATH/sanitiz3r.py /usr/local/bin/Sanitiz3r
+```
+Example:
+```
+ln -s /Users/Sawzeeyy/Desktop/Sanitiz3r/sanitiz3r.py /usr/local/bin/Sanitiz3r
+```
+Then you can run Sanitiz3r directly using
+```
+$ Sanitiz3r
+```
 
 # Dependencies
 
