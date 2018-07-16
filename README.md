@@ -38,7 +38,7 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 | ------------- |-------------| -----|
 | -v | --verbose | Optionally log all information about the current process |
 | -a | --active | Optionally choose to take Sanitiz3r online to detemine the validity of subdomains |
-| -d | --domain | Specify the domain name(s) |
+| -d | --domain | Specify the domain name(s) or a text file containing the domains |
 | -i | --input | Specify the input file(s) containing the subdomaains |
 | -o | --output| Optionally specify the filename to save the report. Default: *domain_sanitizer.html* |
 
@@ -50,6 +50,10 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 - To filter the contents of an input file against a particular domain and generate output:
 
 `python sanitiz3r.py -d domain.com -i file1.txt`
+
+- To specify the hosts / domains file:
+
+`python sanitiz3r.py -v -a -d domains.txt -i file1.txt,file2.txt -o customname.html`
 
 - To specify the filename of the generated output:
 
@@ -65,7 +69,8 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 
 - To use all the features of sanitiz3r at once:
 
-`python sanitiz3r.py -v -a -d domain.com domain2.net -i file1.txt file2.txt -o customname.html`
+`python sanitiz3r.py -v -a -d domain.com,domain2.net -i file1.txt,file2.txt -o customname.html`
+
 
 # License
 
