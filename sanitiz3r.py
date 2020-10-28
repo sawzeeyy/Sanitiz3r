@@ -11,14 +11,11 @@ import argparse
 import re
 import requests
 import webbrowser
+import http.client
 
-# Version Compatibility
 if sys.version < '3':
-    import httplib
-    compatibility = 0
-else:
-    import http.client
-    compatibility = 1
+    print('[+] Please use python3')
+    sys.exit()
 
 # OS Compatibility : Coloring
 if sys.platform.startswith('win'):
@@ -35,13 +32,13 @@ else:
 
 def header():
     print('''%s
-                                                   ___        
-           ()                  o        o         /   \       
-           /\   __,    _  _        _|_       __     __/  ,_   
-          /  \ /  |   / |/ |   |    |   |   / / _     \ /  |  
+                                                   ___
+           ()                  o        o         /   \
+           /\   __,    _  _        _|_       __     __/  ,_
+          /  \ /  |   / |/ |   |    |   |   / / _     \ /  |
          /(__/ \_/|_/   |  |_/ |_/  |_/ |_/  /_/  \___/    |_/ v1.0
-                                              /|              
-         %sBy Shuaib Oladigbolu - @_sawzeeyy%s    \|%s          #F007573P %s 
+                                              /|
+         %sBy Shuaib Oladigbolu - @_sawzeeyy%s    \|%s          #F007573P %s
         '''%(R, B, R, C, W))
 
 def parse_error(errormsg):
@@ -152,10 +149,7 @@ def extract_title(html_body):
 
 def get_http_status(url, time_out = 10):
     try:
-        if compatibility == 0:
-            resp = httplib.HTTPConnection(url, timeout = time_out)
-        elif compatibility == 1:
-            resp = http.client.HTTPConnection(url, timeout = time_out)
+        resp = http.client.HTTPConnection(url, timeout = time_out)
         resp.request('GET', '/')
         response = resp.getresponse()
         title = extract_title(response.read().encode("utf-8"))
@@ -182,11 +176,11 @@ def generate_html_code(*args):
             text_format.append(url)
             part_div_code = """
 <div>
-    <a href='http://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>http://www.{}</a> | <a href='https://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>https://www.{}</a>  
+    <a href='http://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>http://www.{}</a> | <a href='https://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>https://www.{}</a>
     <div class='container'>
       [Subdomain: '<span style='background-color:yellow'>{}</span>']
     </div>
-</div>        
+</div>
         """.format(url,url,url,url,url)
             div_code += part_div_code
 
