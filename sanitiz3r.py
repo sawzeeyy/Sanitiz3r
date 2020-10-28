@@ -103,19 +103,19 @@ def parse_args():
     )
     parser.add_argument(
         '-t', '--thread',
-        help='Number of threads, default is 10',
+        help='Number of threads, default=10',
         default=10,
         required=False
     )
     parser.add_argument(
         '--timeout',
-        help='Maximum time to request for a URL',
+        help='Maximum time to request for a URL, default=10',
         default=10,
         required=False
     )
     parser.add_argument(
         '-r', '--resolved',
-        help='Filter resolved URLs',
+        help='Optionally filter resolved URLs',
         required=False,
         action='store_true'
     )
@@ -178,7 +178,7 @@ def get_status(url):
     finally:
         url = 'https://' + url
 
-    if verbose:
+    if (verbose and resolved and status != 1909) or (verbose and not resolved):
         temp_status = 'Not Reachable' if status == 1909 else status
         print('\n[-] Checking {}{}\n\t{}[+] Status: {}\n\t[+] Title: {}{}\
             '.format(R, url, Y, temp_status, title, C))
