@@ -12,6 +12,7 @@ import re
 import requests
 import webbrowser
 import http.client
+from concurrent.futures import ThreadPoolExecutor
 
 if sys.version < '3':
     print('[+] Please use python3')
@@ -33,14 +34,14 @@ if sys.platform.startswith('win'):
 
 def header():
     print('''%s
-                                                   ___
-           ()                  o        o         /   \
-           /\   __,    _  _        _|_       __     __/  ,_
-          /  \ /  |   / |/ |   |    |   |   / / _     \ /  |
-         /(__/ \_/|_/   |  |_/ |_/  |_/ |_/  /_/  \___/    |_/ v1.0
-                                              /|
-         %sBy Shuaib Oladigbolu - @_sawzeeyy%s    \|%s          #F007573P %s
-        ''' % (R, B, R, C, W))
+                                           ___
+   ()                  o        o         /   \\
+   /\\   __,    _  _        _|_       __     __/  ,_
+  /  \\ /  |   / |/ |   |    |   |   / / _     \\ /  |
+ /(__/ \\_/|_/   |  |_/ |_/  |_/ |_/  /_/  \\___/    |_/ v1.0
+                                      /|
+ %sBy Shuaib Oladigbolu - @_sawzeeyy%s    \\|%s          #F007573P %s
+    ''' % (R, B, R, C, W))
 
 
 def parse_error(errormsg):
@@ -84,7 +85,7 @@ def parse_args():
     )
     parser.add_argument(
         '-d', '--domain',
-        help='Specify a domain, a comma-separated list or a file\
+        help='Specify a comma-separated list of domains, or a file\
              containing a list of domains to return the corresponding\
              matching subdomains',
         required=True
@@ -93,105 +94,97 @@ def parse_args():
         '-i', '--input',
         help='Specify an input file or a comma-separated list\
              of the files to sanitize',
-        required=True)
+        required=True
+    )
     parser.add_argument(
         '-o', '--output',
         help='Optionally specify the filename to save the report',
         required=False
     )
-
+    parser.add_argument(
+        '-t', '--thread',
+        help='Number of threads, default is 10',
+        default=10,
+        required=False
+    )
+    parser.add_argument(
+        '--timeout',
+        help='Maximum time to request for a URL',
+        default=10,
+        required=False
+    )
+    parser.add_argument(
+        '-r', '--resolved',
+        help='Filter resolved URLs',
+        required=False,
+        action='store_true'
+    )
     return parser.parse_args()
 
 
-def base_url(urls_list):
-    urls = []
-    for url in urls_list:
-        if url[0:7] == 'http://' or url[0:8] == 'https://':
-            url = url.split('/')
-            urls.append(url[2])
-        else:
-            urls.append(url)
-    return urls
+def base_url(url):
+    if url.startswith('http://') or url.startswith('https://'):
+        return url.split('/')[2]
+    return url
 
 
 def get_urls(domain, files):
-    url_list, urls = [], []
-    for file in files:
+    urls = []
+    for f in files:
         try:
-            lines = open(file)
-            line = [url.strip() for url in lines]
-            line = base_url(line)
+            lines = open(f).readlines()
+            line = [base_url(url.strip()) for url in lines]
             line = [extract_url(domain, url) for url in line]
-            urls += line
+            urls.extend(line)
         except IOError:
-            print('{}Cannot find : {}{}'.format(R, file, C))
+            print('{}Cannot find : {}{}'.format(R, f, C))
 
-    if urls != []:
-        urls = set(urls)
-        for url in urls:
-            if url != '':
-                url_list.append(url)
-        url_list.sort()
-        return base_url(url_list)
+    urls = set(urls)
+    if urls:
+        urls = [url for url in urls if url != '']
+        return urls
     else:
         print('{}Exiting since no file(s) found!{}'.format(R, C))
-        return('empty')
+        sys.exit()
 
 
-def extract_url(domains, line):
-    urls = []
-    domain = [i.split('.')[-1] for i in domains]
-    sawzeeyy = '|'.join(domain)
-    url_regex = r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw|""" + sawzeeyy + r""")/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw|""" + sawzeeyy + r""")\b/?(?!@)))"""
-
-    urls_found = re.findall(url_regex, line)
-    for url in urls_found:
-        for domain in domains:
-            if url.endswith(domain):
-                urls.append(url)
-    urls = ','.join(urls)
-    return urls
+def extract_url(domain, url):
+    for d in domain:
+        if url.endswith(d):
+            return url
+    return ''
 
 
-def get_status(urls, time_out, args):
-    print('{}[+] Now checking the individual subdomains{}'.format(Y, C))
-    status = {}
-    url_and_status = [get_url_status(url, time_out, args) for url in urls]
-    url_status = [i[0] for i in url_and_status]
-    unique_status = list(set(list(url_status)))
-    unique_status.sort()
+def get_status(url):
+    try:
+        resp = http.client.HTTPConnection(url, timeout=timeout)
+        resp.request('GET', '/')
+        response = resp.getresponse()
+        title = extract_title(response.read().decode('utf-8'))
+        status = response.status
+    except (ConnectionError, OSError) as _:
+        status = 1909
+        title = 'Unidentified'
 
-    for u_status in unique_status:
-        temp_status = []
-        for url_index in range(len(url_status)):
-            if url_status[url_index] == u_status:
-                temp_status.append(url_and_status[url_index][1:3])
-        status[u_status] = temp_status
-    return status
+    try:
+        response = requests.get('https://' + url, timeout=timeout)
+        if status > response.status_code:
+            title = extract_title(response.text)
+            status = response.status_code
+        else:
+            url = 'http://' + url
+    except requests.ConnectionError:
+        pass
+    finally:
+        url = 'https://' + url
 
+    if verbose:
+        temp_status = 'Not Reachable' if status == 1909 else status
+        print('\n[-] Checking {}{}\n\t{}[+] Status: {}\n\t[+] Title: {}{}\
+            '.format(R, url, Y, temp_status, title, C))
 
-def get_url_status(url, timeout, arguments):
-    if (arguments.verbose):
-        print('{}[-] Checking {}{}{}'.format(C, R, url, C))
-
-    full_http_status = get_http_status(url, timeout)
-    full_https_status = get_https_status(url, timeout)
-    http_url, http_status, http_title = full_http_status
-    https_url, https_status, https_title = full_https_status
-    url_status = min(http_status, https_status)
-    status = 'Not Reachable' if url_status == 1909 else url_status
-
-    if (arguments.verbose):
-        print('\t{}[+] Status: {}{}'.format(Y, status, C))
-
-    if url_status == http_status:
-        if (arguments.verbose):
-            print('\t{}[+] Title: {}{}'.format(Y, http_title, C))
-        return [url_status, http_url, http_title]
-    else:
-        if (arguments.verbose):
-            print('\t{}[+] Title: {}{}'.format(Y, https_title, C))
-        return [url_status, https_url, https_title]
+    if (resolved and status != 1909) or not resolved:
+        url_report.append(dict(url=url, status=status, title=title))
 
 
 def extract_title(html_body):
@@ -200,156 +193,105 @@ def extract_title(html_body):
     return title
 
 
-def get_http_status(url, time_out=10):
-    try:
-        resp = http.client.HTTPConnection(url, timeout=time_out)
-        resp.request('GET', '/')
-        response = resp.getresponse()
-        title = extract_title(response.read().encode("utf-8"))
-        return ['http://' + url, response.status, title]
-    except http.client.HTTPException:
-        return ['http://' + url, 1909, 'Unidentified']
-
-
-def get_https_status(url, time_out=10):
-    try:
-        response = requests.get('https://'+url, timeout=time_out)
-        title = extract_title(response.text.encode("utf-8"))
-        return ['https://' + url, response.status_code, title]
-    except requests.ConnectionError:
-        return ['https://' + url, 1909, 'Unidentified']
-
-
-def generate_html_code(*args):
-    mode, domain, domain_length = args[0], args[1], args[2]
-    html_code, text_format = [], []
+def generate_report(*args):
+    mode, domain, domain_length, u_report = args
+    report = dict(html='', text='')
     domains = ','.join(domain)
     div_code = ''
+
     if mode == 'passive':
-        urls = args[3]
-        for url in urls:
-            text_format.append(url)
+        for url in u_report:
+            report['text'] += url + '\n'
             part_div_code = """
-<div>
-    <a href='http://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>http://www.{}</a> | <a href='https://www.{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>https://www.{}</a>
-    <div class='container'>
-      [Subdomain: '<span style='background-color:yellow'>{}</span>']
-    </div>
-</div>
-        """.format(url, url, url, url, url)
+    <div><a href='http://www.{}' target='_blank' rel='nofollow noopener\
+     noreferrer' class='text'>http://www.{}</a> | <a href='https://www.{}'\
+     target='_blank' rel='nofollow noopener noreferrer' class='text'>\
+     https://www.{}</a><div class='container'>[Subdomain: '<span\
+     style='background-color:yellow'>{}</span>']</div></div>
+            """.format(url, url, url, url, url)
+            div_code += part_div_code
+    elif mode == 'active':
+        for u in u_report:
+            url = u['url']
+            title = u['title']
+            status = 'Not Reachable' if u['status'] == 1909 else u['status']
+            report['text'] += base_url(url) + '\n'
+            part_div_code = """
+    <div><a href={} target=_blank rel="nofollow noopener noreferrer"\
+     class=text>{}</a> <div class=container> [Subdomain: '<span\
+     style=background-color:#ff0>{}</span>'], [Status: '<span\
+     style=background-color:#ff0>{}</span>'], [Title: '<span\
+     style=background-color:#ff0>{}</span>'] </div></div>
+            """.format(url, url, base_url(url), status, title)
             div_code += part_div_code
 
-    elif mode == 'active':
-        url_and_status = args[3]
-        for status in url_and_status:
-            for url in url_and_status[status]:
-                text_format.append(url[0].split('/')[-1])
-                if status == 1909:
-                    status = 'Not Reachable'
-                    url[1] = 'Unidentified'
-                part_div_code = """
-            <div>
-                <a href='{}' target='_blank' rel='nofollow noopener noreferrer' class='text'>{}</a>
-                <div class='container'>
-                  [Subdomain: '<span style='background-color:yellow'>{}</span>'], [Status: '<span style='background-color:yellow'>{}</span>'], [Title: '<span style='background-color:yellow'>{}</span>']
-                </div>
-            </div>
-                    """.format(
-                        url[0], url[0], url[0].split('/')[-1], status, url[1]
-                    )
-                div_code += part_div_code
-
     style = """\
-h1 {
-        font-family: sans-serif;
-    }
-    a {
-        color: #000;
-    }
-    .text {
-        font-size: 16px;
-        font-family: Helvetica, sans-serif;
-        color: #323232;
-        background-color: white;
-    }
-    .container {
-        background-color: #e9e9e9;
-        padding: 10px;
-        margin: 10px 0;
-        font-family: helvetica;
-        font-size: 13px;
-        border-width: 1px;
-        border-style: solid;
-        border-color: #8a8a8a;
-        color: #323232;
-        margin-bottom: 15px;
-    }
-    .button {
-        padding: 17px 60px;
-        margin: 10px 10px 10px 0;
-        display: inline-block;
-        background-color: #f4f4f4;
-        border-radius: .25rem;
-        text-decoration: none;
-        -webkit-transition: .15s ease-in-out;
-        transition: .15s ease-in-out;
-        color: #333;
-        position: relative;
-    }
-    .button:hover {
-        background-color: #eee;
-        text-decoration: none;
-    }
-    .github-icon {
-        line-height: 0;
-        position: absolute;
-        top: 14px;
-        left: 24px;
-        opacity: 0.7;
-    }
+    h1{font-family:sans-serif}a{color:#000}.text{font-size:16px;\
+    font-family:Helvetica,sans-serif;color:#323232;background-color:#fff}\
+    .container{background-color:#e9e9e9;padding:10px;margin:10px 0;\
+    font-family:helvetica;font-size:13px;border-width:1px;border-style:solid;\
+    border-color:#8a8a8a;color:#323232;margin-bottom:15px}\
+    .button{padding:17px 60px;margin:10px 10px 10px 0;display:inline-block;\
+    background-color:#f4f4f4;border-radius:.25rem;text-decoration:none;\
+    -webkit-transition:.15s ease-in-out;transition:.15s ease-in-out;\
+    color:#333;position:relative}.button:hover{background-color:#eee;\
+    text-decoration:none}.github-icon{line-height:0;position:absolute;\
+    top:14px;left:24px;opacity:.7}
     """
     part_code = """\
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
+    <!doctype html>
+    <html>
+    <head>
+    <style>{}</style>
+    <title>Sanitiz3r Report - {}</title>
+    </head>
+    <body>
+    <h1>Sanitiz3r Report - {} [{} Subdomain(s)]</h1>
     {}
-  </style>
-  <title>Sanitiz3r Report - {}</title>
-</head>
-<body>
-  <h1>Sanitiz3r Report - {} [{} Subdomain(s)]</h1>
-  {}
-  <a class='button' contenteditable='false' href='https://github.com/sawzeeyy/Sanitiz3r/issues/new' rel='nofollow noopener noreferrer' target='_blank'><span class='github-icon'><svg height='24' viewbox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'>
-  <path d='M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' fill='none' stroke='#000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'></path></svg></span> Report an issue.</a>
-</body>
-</html>
+    <a class=button contenteditable=false href=\
+    https://github.com/sawzeeyy/Sanitiz3r/issues/new \
+    rel="nofollow noopener noreferrer" target=_blank><span \
+    class=github-icon><svg height=24 viewbox="0 0 24 24" width=24 \
+    xmlns=http://www.w3.org/2000/svg> <path d="M9 19c-5 1.5-5-2.5-7-3m14 \
+    6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 \
+    0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 \
+    0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 \
+    0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" \
+    fill=none stroke=#000 stroke-linecap=round stroke-linejoin=round \
+    stroke-width=2></path></svg></span> Report an issue.</a>
+    </body>
+    </html>
     """.format(style, domains, domains, domain_length, div_code)
-    html_code.append(part_code)
-    return html_code, text_format
+    report['html'] = part_code
+    return report
 
 
-def save_html_file(code, filename):
-    fh = open(filename + '.html', 'w')
-    txt = open(filename + '.txt', 'w')
-    for st in code[0]:
-        fh.write(st)
+def save_report(code, filename):
+    with open(filename + '.html', 'w') as html:
+        html.write(code['html'])
 
-    for text in code[1]:
-        txt.write(text+'\n')
-
-    fh.close()
+    with open(filename + '.txt', 'w') as text:
+        text.write(code['text'])
 
 
 def sanitiz3r():
+    global url_report
+    global timeout
+    global verbose
+    global resolved
+
     header()
     args = parse_args()
     domain = args.domain.split(',')
+    mode = 'active' if args.active else 'passive'
+    verbose = args.verbose
+    timeout = args.timeout
+    resolved = args.resolved
 
     if isinstance(args.output, str):
-        filename = domain[0].split('.')[0] + '_sanitiz3r'
-    else:
         filename = args.output.split('.')[0] + '_sanitiz3r'
+    else:
+        filename = domain[0].split('.')[0]
 
     if len(domain) == 1 and domain[0].split('.')[1] == 'txt':
         try:
@@ -361,24 +303,33 @@ def sanitiz3r():
     domain = [i.strip() for i in domain]
     file = args.input.split(',')
     urls = get_urls(domain, file)
-    filename = os.path.dirname(os.path.abspath(file[0])) + '/' + filename
-    mode = 'active' if args.active else 'passive'
+    filename = os.getcwd() + '/' + filename
 
-    if urls == 'empty':
-        sys.exit()
-    else:
-        print('{}[+] {} URLs / Subdomains Sanitiz3d{}'.format(Y, len(urls), C))
+    print('{}[+] {} URLs / Subdomains Sanitiz3d'.format(Y, len(urls)))
 
     if mode == 'passive':
-        html = generate_html_code(mode, domain, len(urls), urls)
-        save_html_file(html, filename)
-
+        report = generate_report(mode, domain, len(urls), urls)
+        save_report(report, filename)
     elif mode == 'active':
-        status = get_status(urls, 10, args)
-        html = generate_html_code(mode, domain, len(urls), status)
-        save_html_file(html, filename)
+        print('{}[+] Now checking the individual subdomains{}'.format(Y, C))
+        url_report = []
+        with ThreadPoolExecutor(max_workers=args.thread) as executor:
+            executor.map(get_status, urls)
+
+        url_report = sorted(url_report, key=lambda i: i['status'])
+        if not url_report:
+            print('{}[+] None of the URLs resolved{}'.format(Y, C))
+            sys.exit()
+
+        if resolved:
+            print('\n{}[+] {} URLs / Subdomains Resolved{}\
+                '.format(Y, len(url_report), C))
+
+        report = generate_report(mode, domain, len(url_report), url_report)
+        save_report(report, filename)
+
     print('{}[+] HTML Report Successfully Generated{}'.format(Y, C))
-    print('{}[+] File saved as {}{}.html{}'.format(Y, R, filename, C))
+    print('{}[+] File saved to {}{}.html{}'.format(Y, R, filename, C))
     print('{}[+] Sanitiz3r Operation Completed!{}'.format(Y, W))
     try:
         webbrowser.open_new_tab('file:///' + filename + '.html')
