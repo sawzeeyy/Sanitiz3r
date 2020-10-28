@@ -3,7 +3,7 @@
 # Author: Shuaib Oladigbolu
 # F007573P
 # Twitter: @_sawzeeyy
-# Sanitiz3r v1.0
+# Sanitiz3r v1.1
 
 import os
 import sys
@@ -38,7 +38,7 @@ def header():
    ()                  o        o         /   \\
    /\\   __,    _  _        _|_       __     __/  ,_
   /  \\ /  |   / |/ |   |    |   |   / / _     \\ /  |
- /(__/ \\_/|_/   |  |_/ |_/  |_/ |_/  /_/  \\___/    |_/ v1.0
+ /(__/ \\_/|_/   |  |_/ |_/  |_/ |_/  /_/  \\___/    |_/ v1.1
                                       /|
  %sBy Shuaib Oladigbolu - @_sawzeeyy%s    \\|%s          #F007573P %s
     ''' % (R, B, R, C, W))
@@ -331,6 +331,7 @@ def sanitiz3r():
     print('{}[+] HTML Report Successfully Generated{}'.format(Y, C))
     print('{}[+] File saved to {}{}.html{}'.format(Y, R, filename, C))
     print('{}[+] Sanitiz3r Operation Completed!{}'.format(Y, W))
+
     try:
         webbrowser.open_new_tab('file:///' + filename + '.html')
     except IOError:
