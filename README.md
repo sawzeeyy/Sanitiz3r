@@ -100,4 +100,4 @@ Special thanks to [Yusuf Yazir](https://twitter.com/hacklad "Yusuf Yazir, @hackl
 
 # Changelog
 
-[CHANGELOG](/CHANGELOG)
+[CHANGELOG](/CHANGELOG.md)
