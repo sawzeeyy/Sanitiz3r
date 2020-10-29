@@ -52,6 +52,9 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, http.client, and the w
 | -d | --domain | Specify the domain name(s) or a text file containing the domains |
 | -i | --input | Specify the input file(s) containing the subdomaains |
 | -o | --output| Optionally specify the filename to save the report. Default: *domain_sanitizer.html* |
+| -t | --thread | Specify the number of threads, default=10 |
+| | --timeout | Specify the maximum time to request for a URL, default=10 |
+| -r | --resolved | Optionally filter resolved URLs |
 
 # Examples
 - To list all the basic options and switches use -h switch:
@@ -97,4 +100,4 @@ Special thanks to [Yusuf Yazir](https://twitter.com/hacklad "Yusuf Yazir, @hackl
 
 # Changelog
 
-1.0 - Release
+[CHANGELOG](/CHANGELOG)
