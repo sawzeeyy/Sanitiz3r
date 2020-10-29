@@ -15,12 +15,12 @@ The output is given in HTML and .txt format. The later contains same subdomains 
 
 # Installation
 
-Sanitiz3r supports **Python 2** and **Python 3**.
+Sanitiz3r supports only **Python 3**.
 
 ```
 $ git clone https://github.com/sawzeeyy/Sanitiz3r.git
 $ cd Sanitiz3r
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 **Additional for Linux users**
 ```
@@ -37,7 +37,7 @@ $ Sanitiz3r
 
 # Dependencies
 
-Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser python modules. As well as httplib and http.client modules for python 2 and 3 respectively. depending on the python versions. These dependencies can all be installed using [pip](https://pypi.python.org/pypi/pip).
+Sanitiz3r depends on the os, sys, argparse, re, requests, http.client, and the webbrowser python modules. These dependencies can all be installed using [pip](https://pypi.python.org/pypi/pip).
 
 **Python 3:** `$ pip3 install -r requirements.txt`
 
@@ -52,35 +52,38 @@ Sanitiz3r depends on the os, sys, argparse, re, requests, and the webbrowser pyt
 | -d | --domain | Specify the domain name(s) or a text file containing the domains |
 | -i | --input | Specify the input file(s) containing the subdomaains |
 | -o | --output| Optionally specify the filename to save the report. Default: *domain_sanitizer.html* |
+| -t | --thread | Specify the number of threads, default=10 |
+| | --timeout | Specify the maximum time to request for a URL, default=10 |
+| -r | --resolved | Optionally filter resolved URLs |
 
 # Examples
 - To list all the basic options and switches use -h switch:
 
-`python sanitiz3r.py -h`
+`python3 sanitiz3r.py -h`
 
 - To filter the contents of an input file against a particular domain and generate output:
 
-`python sanitiz3r.py -d domain.com -i file1.txt`
+`python3 sanitiz3r.py -d domain.com -i file1.txt`
 
 - To specify the hosts / domains file:
 
-`python sanitiz3r.py -v -a -d domains.txt -i file1.txt,file2.txt -o customname.html`
+`python3 sanitiz3r.py -v -a -d domains.txt -i file1.txt,file2.txt -o customname.html`
 
 - To specify the filename of the generated output:
 
-`python sanitiz3r.py -d domain.com -i file1.txt -o customname.html`
+`python3 sanitiz3r.py -d domain.com -i file1.txt -o customname.html`
 
 - To filter and determine the status of subdomains:
 
-`python sanitiz3r.py -a -d domain.com -i file1.txt`
+`python3 sanitiz3r.py -a -d domain.com -i file1.txt`
 
 - To view realtime information about the current process.:
 
-`python sanitiz3r.py -v -a -d domain.com -i file1.txt`
+`python3 sanitiz3r.py -v -a -d domain.com -i file1.txt`
 
 - To use all the features of sanitiz3r at once:
 
-`python sanitiz3r.py -v -a -d domain.com,domain2.net -i file1.txt,file2.txt -o customname.html`
+`python3 sanitiz3r.py -v -a -d domain.com,domain2.net -i file1.txt,file2.txt -o customname.html`
 
 
 # License
@@ -97,4 +100,4 @@ Special thanks to [Yusuf Yazir](https://twitter.com/hacklad "Yusuf Yazir, @hackl
 
 # Changelog
 
-1.0 - Release
+[CHANGELOG](/CHANGELOG.md)
